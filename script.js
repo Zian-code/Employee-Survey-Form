@@ -339,12 +339,6 @@ function renderPage() {
     const page = pages[pageIndex];
     let html = `<div class="form-section">`;
     
-    // Add token display at the top
-    const version = getUrlParameter('v') || 'default';
-    html += `<div style="background: #f0f0f0; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
-        Current Token/Version: <strong>${version}</strong>
-    </div>`;
-    
     html += `<h2>${page.title}</h2>`;
 
     if (page.questions) {
@@ -440,54 +434,33 @@ async function submitToGoogleSheets(responses) {
 
         console.log('Submitting data:', formattedResponses);
 
-        return new Promise((resolve, reject) => {
-            // Create a hidden iframe
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            // Create the form
-            const form = document.createElement('form');
-            form.style.display = 'none';
-            form.method = 'POST';
-            form.action = 'https://script.google.com/macros/s/AKfycbzcGincZ4Ln9-TrQoCnVrweN59MkAW5DUn6N6177P6MPZC0BmKMgyoyexVpdV-D0oiI/exec';
-            form.target = iframe.name = 'submit-iframe-' + Date.now();
-
-            // Add the data as a hidden field
-            const dataInput = document.createElement('input');
-            dataInput.type = 'hidden';
-            dataInput.name = 'payload';
-            dataInput.value = JSON.stringify(formattedResponses);
-            form.appendChild(dataInput);
-
-            // Listen for the response
-            window.addEventListener('message', function responseHandler(event) {
-                // Clean up
-                document.body.removeChild(iframe);
-                document.body.removeChild(form);
-                window.removeEventListener('message', responseHandler);
-
-                const response = event.data;
-                console.log('Received response:', response);
-
-                if (response.status === 'success') {
-                    resolve(true);
-                } else {
-                    console.error('Submission error:', response.message);
-                    reject(new Error(response.message));
+        // Use fetch for all requests (restored for real submissions)
+        return fetch('https://script.google.com/macros/s/AKfycbzcGincZ4Ln9-TrQoCnVrweN59MkAW5DUn6N6177P6MPZC0BmKMgyoyexVpdV-D0oiI/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'payload=' + encodeURIComponent(JSON.stringify(formattedResponses))
+        })
+        .then(async response => {
+            if (response.ok) {
+                try {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        return true;
+                    } else {
+                        console.error('Backend error:', data.message);
+                        return false;
+                    }
+                } catch (err) {
+                    console.error('Failed to parse backend response:', err);
+                    return false;
                 }
-            });
-
-            // Add form to body and submit
-            document.body.appendChild(form);
-            form.submit();
-
-            // Set a timeout
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                document.body.removeChild(form);
-                reject(new Error('Submission timeout after 30 seconds'));
-            }, 30000);
+            } else {
+                throw new Error('Submission failed');
+            }
+        })
+        .catch(err => {
+            console.error('Network error occurred:', err);
+            return false;
         });
 
     } catch (error) {
@@ -565,17 +538,39 @@ function goNext() {
         const userToken = localStorage.getItem("surveyToken") || crypto.randomUUID();
         localStorage.setItem("surveyToken", userToken);
         
+        // Show loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-indicator';
+        loadingDiv.innerHTML = 'Submitting your responses...';
+        loadingDiv.style.position = 'fixed';
+        loadingDiv.style.top = '50%';
+        loadingDiv.style.left = '50%';
+        loadingDiv.style.transform = 'translate(-50%, -50%)';
+        loadingDiv.style.padding = '20px';
+        loadingDiv.style.background = 'rgba(0,0,0,0.8)';
+        loadingDiv.style.color = 'white';
+        loadingDiv.style.borderRadius = '8px';
+        loadingDiv.style.zIndex = '1000';
+        document.body.appendChild(loadingDiv);
+        
         // Submit to Google Sheets before showing the final page
-        submitToGoogleSheets(responses).then(success => {
-            showSubmissionStatus(success);
-            if (success) {
-                pageIndex++;
-                renderPage();
-                document.getElementById("nextBtn").style.display = "none";
-                document.getElementById("prevBtn").style.display = "none";
-                localStorage.removeItem("surveyResponses");
-            }
-        });
+        submitToGoogleSheets(responses)
+            .then(success => {
+                document.body.removeChild(loadingDiv);
+                showSubmissionStatus(success);
+                if (success) {
+                    pageIndex++;
+                    renderPage();
+                    document.getElementById("nextBtn").style.display = "none";
+                    document.getElementById("prevBtn").style.display = "none";
+                    localStorage.removeItem("surveyResponses");
+                }
+            })
+            .catch(error => {
+                document.body.removeChild(loadingDiv);
+                showSubmissionStatus(false);
+                console.error('Submission error:', error);
+            });
     } else {
         pageIndex++;
         renderPage();

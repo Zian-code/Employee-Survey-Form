@@ -59,29 +59,21 @@ function doPost(e) {
     Logger.log('Data inserted at row: ' + (lastRow + 1));
     
     // Return success response
-    return HtmlService.createHtmlOutput(`
-      <script>
-        window.parent.postMessage({ 
-          status: 'success',
-          message: 'Data successfully recorded',
-          row: ${lastRow + 1}
-        }, '*');
-      </script>
-    `);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      message: 'Data successfully recorded',
+      row: lastRow + 1
+    })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
     Logger.log('Error in doPost: ' + error.message);
     Logger.log('Error stack: ' + error.stack);
     
     // Return error response
-    return HtmlService.createHtmlOutput(`
-      <script>
-        window.parent.postMessage({ 
-          status: 'error',
-          message: '${error.message}'
-        }, '*');
-      </script>
-    `);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: error.message
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
