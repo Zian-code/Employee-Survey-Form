@@ -708,14 +708,22 @@ function initializeSurvey() {
 }
 
 // Initialization
-(function(_0x2f1d3a,_0x5e4b8c){const _0x3d8b4f=_0x2a15;function _0x2a15(_0x4d8a2c,_0x2e8f9d){const _0x1f4b8e=_0x1f4b();return _0x2a15=function(_0x2a1551,_0x4f4b8e){_0x2a1551=_0x2a1551-0x1b3;let _0x3b4b8e=_0x1f4b8e[_0x2a1551];return _0x3b4b8e;},_0x2a15(_0x4d8a2c,_0x2e8f9d);}(function(){const _0x4f4b8e=new URLSearchParams(window.location.search),_0x1f4b8e=_0x4f4b8e.get('v');if(!_0x1f4b8e)return void(_0x2f1d3a.innerHTML='<div class="form-section"><h2>Session Expired</h2><p>Please refresh and try again.</p></div>');_0x5e4b8c(_0x1f4b8e);})();})
-(document.querySelector('#app'),initializeSession);
+(function(_0x2f1d3a,_0x5e4b8c){
+    const _0x4f4b8e = new URLSearchParams(window.location.search);
+    const _0x1f4b8e = _0x4f4b8e.get('v');
+    if(!_0x1f4b8e) {
+        _0x2f1d3a.innerHTML = '<div class="form-section"><h2>Session Expired</h2><p>Please refresh and try again.</p></div>';
+        return;
+    }
+    _0x5e4b8c(_0x1f4b8e);
+})(document.querySelector('#app'), initializeSession);
 
 function initializeSession(key) {
     const _0x4c8a = {
-        endpoint: atob('aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J5YkIxSndJSUF6LXlsYWIzd1NPU3R6aEFmeHNrZlFrdmJWblU5ajh1Q1RfVlkyU1hmSWlTTmxGLXBkZFZBajRIUDhJUS9leGVj'),
+        endpoint: atob('aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6MnVmR1lvRGR6ZVM0ODBrV3N5QTlmanVfdmdPSjlDYl9ETkoyN2FCeTVzT2dJUkdEN1ZJWU5pTkFMbWw4Z0dVSlpRUS9leGVj'),
         metrics: {},
-        sequence: 0
+        sequence: 0,
+        totalQuestions: 6
     };
 
     const _0x3f9b = [
@@ -729,6 +737,8 @@ function initializeSession(key) {
 
     function _0x2b7c(i) {
         const e = document.querySelector('#app');
+        
+        // Welcome page
         if(i === 0) {
             e.innerHTML = `
                 <div class="form-section">
@@ -740,6 +750,7 @@ function initializeSession(key) {
             return;
         }
         
+        // Submission page
         if(i > _0x3f9b.length) {
             _0x5d9c();
             return;
@@ -776,6 +787,10 @@ function initializeSession(key) {
         }
 
         e.innerHTML = h;
+        
+        // Update button states
+        document.querySelector('#prevBtn').disabled = i === 0;
+        document.querySelector('#nextBtn').textContent = i === _0x3f9b.length ? 'Submit' : 'Next';
     }
 
     function _0x1a3c() {
@@ -785,6 +800,7 @@ function initializeSession(key) {
     }
 
     function _0x4d2e() {
+        // Welcome page and thank you page don't need validation
         if(_0x4c8a.sequence === 0) return true;
         if(_0x4c8a.sequence > _0x3f9b.length) return true;
 
@@ -793,6 +809,7 @@ function initializeSession(key) {
             ? document.querySelector(`input[name="${q.k}"]:checked`)
             : document.querySelector(`textarea[name="${q.k}"]`);
 
+        // Only validate radio buttons, textarea is optional
         if(!i && q.c === 1) {
             const w = document.createElement('div');
             w.className = 'warning-message';
@@ -802,7 +819,9 @@ function initializeSession(key) {
             return false;
         }
 
-        _0x4c8a.metrics[q.k] = q.c === 1 ? parseInt(i.value) : i.value;
+        if(i) {
+            _0x4c8a.metrics[q.k] = q.c === 1 ? parseInt(i.value) : i.value;
+        }
         return true;
     }
 
@@ -832,6 +851,9 @@ function initializeSession(key) {
                         <p>Your response has been recorded.</p>
                     </div>
                 `;
+                // Disable navigation after submission
+                document.querySelector('#prevBtn').disabled = true;
+                document.querySelector('#nextBtn').disabled = true;
             } else {
                 throw new Error('Failed');
             }
@@ -845,6 +867,7 @@ function initializeSession(key) {
         }
     }
 
+    // Navigation event listeners
     document.querySelector('#prevBtn').addEventListener('click', () => {
         if(_0x4c8a.sequence > 0) {
             _0x4c8a.sequence--;
@@ -861,6 +884,7 @@ function initializeSession(key) {
         }
     });
 
+    // Initialize first page
     _0x2b7c(_0x4c8a.sequence);
     _0x1a3c();
 }
