@@ -339,6 +339,12 @@ function renderPage() {
     const page = pages[pageIndex];
     let html = `<div class="form-section">`;
     
+    // Add token display at the top
+    const version = getUrlParameter('v') || 'default';
+    html += `<div style="background: #f0f0f0; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+        Current Token/Version: <strong>${version}</strong>
+    </div>`;
+    
     html += `<h2>${page.title}</h2>`;
 
     if (page.questions) {
@@ -413,15 +419,130 @@ function renderPage() {
     });
 }
 
+function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    const results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+async function submitToGoogleSheets(responses) {
+    try {
+        // Get the department/version from URL parameter
+        const version = getUrlParameter('v') || 'default';
+        
+        // Format the data for submission
+        const formattedResponses = {
+            timestamp: new Date().toISOString(),
+            version: version,
+            ...responses
+        };
+
+        console.log('Submitting data:', formattedResponses);
+
+        return new Promise((resolve, reject) => {
+            // Create a hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            // Create the form
+            const form = document.createElement('form');
+            form.style.display = 'none';
+            form.method = 'POST';
+            form.action = 'https://script.google.com/macros/s/AKfycbzcGincZ4Ln9-TrQoCnVrweN59MkAW5DUn6N6177P6MPZC0BmKMgyoyexVpdV-D0oiI/exec';
+            form.target = iframe.name = 'submit-iframe-' + Date.now();
+
+            // Add the data as a hidden field
+            const dataInput = document.createElement('input');
+            dataInput.type = 'hidden';
+            dataInput.name = 'payload';
+            dataInput.value = JSON.stringify(formattedResponses);
+            form.appendChild(dataInput);
+
+            // Listen for the response
+            window.addEventListener('message', function responseHandler(event) {
+                // Clean up
+                document.body.removeChild(iframe);
+                document.body.removeChild(form);
+                window.removeEventListener('message', responseHandler);
+
+                const response = event.data;
+                console.log('Received response:', response);
+
+                if (response.status === 'success') {
+                    resolve(true);
+                } else {
+                    console.error('Submission error:', response.message);
+                    reject(new Error(response.message));
+                }
+            });
+
+            // Add form to body and submit
+            document.body.appendChild(form);
+            form.submit();
+
+            // Set a timeout
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                document.body.removeChild(form);
+                reject(new Error('Submission timeout after 30 seconds'));
+            }, 30000);
+        });
+
+    } catch (error) {
+        console.error('Error in submitToGoogleSheets:', error);
+        return false;
+    }
+}
+
+function showSubmissionStatus(success) {
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'submission-status';
+    
+    if (success) {
+        statusDiv.innerHTML = `
+            ✅ Your responses have been submitted. 
+            Please check the new tab for confirmation.
+            You may close this window after seeing the success message.
+        `;
+        statusDiv.classList.add('success');
+    } else {
+        statusDiv.innerHTML = `
+            ❌ There was an error submitting your responses. 
+            Please check the console for details and try again.
+            If the problem persists, please contact support.
+        `;
+        statusDiv.classList.add('error');
+    }
+    
+    // Position the status message at the top of the page
+    statusDiv.style.position = 'fixed';
+    statusDiv.style.top = '20px';
+    statusDiv.style.left = '50%';
+    statusDiv.style.transform = 'translateX(-50%)';
+    statusDiv.style.backgroundColor = success ? '#4CAF50' : '#f44336';
+    statusDiv.style.color = 'white';
+    statusDiv.style.padding = '15px 25px';
+    statusDiv.style.borderRadius = '5px';
+    statusDiv.style.zIndex = '1000';
+    statusDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    
+    document.body.appendChild(statusDiv);
+    setTimeout(() => {
+        statusDiv.style.opacity = '0';
+        statusDiv.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => statusDiv.remove(), 500);
+    }, 5000);
+}
+
 function goNext() {
     const currentPage = pages[pageIndex];
     
-    // Only validate and show warnings when trying to proceed
     if (!validatePage()) {
         return;
     }
 
-    // Save all responses before proceeding
     if (currentPage.questions) {
         currentPage.questions.forEach(q => {
             if (q.type === "likert") {
@@ -444,17 +565,22 @@ function goNext() {
         const userToken = localStorage.getItem("surveyToken") || crypto.randomUUID();
         localStorage.setItem("surveyToken", userToken);
         
-        pageIndex++;
-        renderPage();
-        document.getElementById("nextBtn").style.display = "none";
-        document.getElementById("prevBtn").style.display = "none";
-        localStorage.removeItem("surveyResponses");
+        // Submit to Google Sheets before showing the final page
+        submitToGoogleSheets(responses).then(success => {
+            showSubmissionStatus(success);
+            if (success) {
+                pageIndex++;
+                renderPage();
+                document.getElementById("nextBtn").style.display = "none";
+                document.getElementById("prevBtn").style.display = "none";
+                localStorage.removeItem("surveyResponses");
+            }
+        });
     } else {
         pageIndex++;
         renderPage();
     }
     
-    // Scroll to top after navigation
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
