@@ -435,7 +435,7 @@ async function submitToGoogleSheets(responses) {
         console.log('Submitting data:', formattedResponses);
 
         // Use fetch for all requests (restored for real submissions)
-        return fetch('https://script.google.com/macros/s/AKfycbzcGincZ4Ln9-TrQoCnVrweN59MkAW5DUn6N6177P6MPZC0BmKMgyoyexVpdV-D0oiI/exec', {
+        return fetch('https://script.google.com/macros/s/AKfycbzb_J7hvywEblQSQzsQNop9M86WyC2PWjb5uiFRkf1MdME9DlM4mVr4Uh6JYSCcWEp1/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'payload=' + encodeURIComponent(JSON.stringify(formattedResponses))
@@ -476,15 +476,13 @@ function showSubmissionStatus(success) {
     if (success) {
         statusDiv.innerHTML = `
             ✅ Your responses have been submitted. 
-            Please check the new tab for confirmation.
-            You may close this window after seeing the success message.
         `;
         statusDiv.classList.add('success');
     } else {
         statusDiv.innerHTML = `
             ❌ There was an error submitting your responses. 
-            Please check the console for details and try again.
-            If the problem persists, please contact support.
+            Please resubmit the responses.
+            If the problem persists, please contact the HR team.
         `;
         statusDiv.classList.add('error');
     }
