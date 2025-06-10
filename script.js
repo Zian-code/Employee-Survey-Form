@@ -13,12 +13,14 @@ const pages = [
       {
         label: "How would you describe the company culture?",
         name: "culture",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Negative", "Very Postive"]
       },
       {
-        label: "Does the company promote diversity & inclusion?",
+        label: "Do you believe the company promotes a culture of diversity and inclusion?",
         name: "diversity",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       }
     ]
   },
@@ -26,24 +28,28 @@ const pages = [
     title: "Work Environment",
     questions: [
       {
-        label: "How would you rate the quality of facilities/resources?",
+        label: "How would you rate the quality of the facilities and resources provided?",
         name: "facilities",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       },
       {
-        label: "How safe do you feel physically at work?",
+        label: "How safe do you feel in your workplace in terms of physical safety?",
         name: "physical_safety",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Not Safe at All", "Very Safe"]
       },
       {
-        label: "How supported do you feel emotionally at work?",
+        label: "How safe do you feel in your workplace in terms of mental and emotional well-being?",
         name: "mental_safety",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Not Safe at All", "Very Safe"]
       },
       {
-        label: "How would you rate the cleanliness & hygiene standards?",
+        label: "How would you rate the cleanliness and hygiene standards of the workplace?",
         name: "cleanliness",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       }
     ]
   },
@@ -51,24 +57,28 @@ const pages = [
     title: "Management and Leadership",
     questions: [
       {
-        label: "How effective is your supervisor's leadership?",
+        label: "How would you rate the leadership abilities of your immediate supervisor?",
         name: "leadership",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       },
       {
-        label: "How confident are you in the management team?",
+        label: "How confident are you in the management team's ability to lead the company effectively?",
         name: "mgmt_confidence",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Not Confident at All", "Very Confident"]
       },
       {
-        label: "How well does management support your needs?",
+        label: "Do you feel that management supports you in your job?",
         name: "support",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       },
       {
-        label: "How approachable do you find the leadership team?",
+        label: "How approachable are the company’s leaders and managers?",
         name: "approachability",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Unapproachable", "Very Approachable"]
       }
     ]
   },
@@ -76,29 +86,31 @@ const pages = [
     title: "Job Satisfaction",
     questions: [
       {
-        label: "How satisfied are you with your job overall?",
+        label: "How satisfied are you with your current job?",
         name: "job_satisfaction",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Dissatisfied", "Very Satisfied"]
       },
       {
-        label: "How likely are you to recommend this company to others?",
+        label: "How likely are you to recommend our company as a good place to work to others?",
         name: "recommend",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Not Likely", "Very Likely"]
       },
       {
-        label: "What aspects of your job do you enjoy the most?",
+        label: "What do you enjoy most about working at our company?",
         name: "enjoy_most",
-        type: "textarea"
+        type: "textarea",
       },
       {
-        label: "What aspects of your job do you find most challenging?",
+        label: "What do you enjoy least about working at our company?",
         name: "enjoy_least",
-        type: "textarea"
+        type: "textarea",
       },
       {
-        label: "If you could change one thing about your job, what would it be?",
+        label: "What is one thing you would change to improve your work experience?",
         name: "change_one",
-        type: "textarea"
+        type: "textarea",
       }
     ]
   },
@@ -106,24 +118,28 @@ const pages = [
     title: "Communication",
     questions: [
       {
-        label: "How effective is communication within the company?",
+        label: "How effectively do you think communication flows between management and staff?",
         name: "communication",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Ineffective", "Very Effective"]
       },
       {
-        label: "How valued do you feel your suggestions and opinions are?",
+        label: "Do you feel your opinions and suggestions are valued by your supervisors?",
         name: "opinions",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       },
       {
-        label: "How would you rate team collaboration?",
+        label: "How well do you feel you work with your team members?",
         name: "teamwork",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poorly", "Very Well"]
       },
       {
-        label: "How well-informed do you feel about company changes?",
+        label: "Do you feel informed about important company updates and changes?",
         name: "updates",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       }
     ]
   },
@@ -131,19 +147,22 @@ const pages = [
     title: "Professional Development",
     questions: [
       {
-        label: "How satisfied are you with training opportunities?",
+        label: "How satisfied are you with the training and development opportunities provided?",
         name: "training",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Dissatisfied", "Very Satisfied"]
       },
       {
-        label: "How would you rate career advancement opportunities?",
+        label: "Do you feel there are opportunities for career advancement within the company?",
         name: "advancement",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       },
       {
-        label: "How effective are the skill development programs?",
+        label: "Have you had a review in the last 12 months that helped you improve your skills and job performance?",
         name: "review",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       }
     ]
   },
@@ -151,19 +170,22 @@ const pages = [
     title: "Compensation and Benefits",
     questions: [
       {
-        label: "How satisfied are you with your compensation?",
+        label: "How satisfied are you with your overall compensation package?",
         name: "compensation",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Dissatisfied", "Very Satisfied"]
       },
       {
-        label: "How would you rate the healthcare benefits?",
+        label: "How would you rate the healthcare benefits provided by the company?",
         name: "healthcare",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       },
       {
-        label: "How satisfied are you with the leave policies?",
+        label: "Are you satisfied with the leave policies in the company?",
         name: "leave",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Dissatisfied", "Very Satisfied"]
       }
     ]
   },
@@ -171,14 +193,16 @@ const pages = [
     title: "Work-Life Balance",
     questions: [
       {
-        label: "How would you rate your work-life balance?",
+        label: "How well do you feel you can balance your work responsibilities with your personal life?",
         name: "balance",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poorly", "Very Well"]
       },
       {
-        label: "How often do you feel overwhelmed at work?",
+        label: "How often do you feel overwhelmed by your workload?",
         name: "overwhelmed",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Never", "Always"]
       }
     ]
   },
@@ -186,24 +210,28 @@ const pages = [
     title: "Well-being",
     questions: [
       {
-        label: "How would you rate your overall well-being at work?",
+        label: "How would you rate your overall mental well-being?  ",
         name: "mental",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       },
       {
-        label: "How effective are the company's well-being initiatives?",
+        label: "How would you rate the company’s efforts to promote employee well-being?",
         name: "wellbeing_effort",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Poor", "Excellent"]
       },
       {
-        label: "How likely are you to participate in wellness programs?",
+        label: "How likely are you to participate in Wellness Program provided by your company?",
         name: "wellness_participation",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Not Likely", "Very Likely"]
       },
       {
-        label: "How comfortable do you feel discussing well-being with your supervisor?",
+        label: "How comfortable do you feel discussing well-being concerns with your supervisor?",
         name: "comfort",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Very Uncomfortable", "Very Comfortable"]
       }
     ]
   },
@@ -211,14 +239,16 @@ const pages = [
     title: "Recognition",
     questions: [
       {
-        label: "How valued do you feel for your contributions?",
+        label: "Do you feel valued and recognized for your contributions at work?  ",
         name: "recognition",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Strongly Disagree", "Strongly Agree"]
       },
       {
-        label: "How often do you receive positive recognition?",
+        label: "How often do you receive positive recognition for your work?  ",
         name: "positive_feedback",
-        type: "likert"
+        type: "likert",
+        scaleLabels: ["Never", "Very Often"]
       }
     ]
   },
@@ -226,17 +256,17 @@ const pages = [
     title: "Final Thoughts",
     questions: [
       {
-        label: "What changes would you like to see in the workplace?",
+        label: "What changes would you like to see implemented in our company?",
         name: "change_suggestions",
         type: "textarea"
       },
       {
-        label: "What additional resources or support would help you succeed?",
+        label: "What additional resources or support do you need to do your job more effectively?",
         name: "resources_needed",
         type: "textarea"
       },
       {
-        label: "Do you have any other comments or suggestions?",
+        label: "Do you have any other comments or suggestions for improving our workplace?",
         name: "other_comments",
         type: "textarea"
       }
@@ -346,8 +376,9 @@ function renderPage() {
             html += `<label>${q.label}</label>`;
 
             if (q.type === "likert") {
+                const [leftLabel, rightLabel] = q.scaleLabels || ["Strongly Disagree", "Strongly Agree"];
                 html += `<div class="likert-scale">`;
-                html += `<span class="likert-label">Strongly Disagree</span>`;
+                html += `<span class="likert-label">${leftLabel}</span>`;
                 html += `<div class="likert-options">`;
                 for (let i = 1; i <= 6; i++) {
                     const isChecked = responses[q.name] == i ? 'checked' : '';
@@ -358,13 +389,13 @@ function renderPage() {
                         </label>`;
                 }
                 html += `</div>`;
-                html += `<span class="likert-label">Strongly Agree</span>`;
+                html += `<span class="likert-label">${rightLabel}</span>`;
                 html += `</div>`;
             } else {
                 const value = responses[q.name] || '';
                 html += `<textarea name="${q.name}" placeholder="Please share your thoughts..." required>${value}</textarea>`;
             }
-        });
+    });
     } else {
         html += page.content;
     }
